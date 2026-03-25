@@ -21,6 +21,7 @@ package ui
 import (
 	"bytes"
 	"io"
+	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -45,6 +46,17 @@ func DisableKittyKeyboard(w io.Writer) {
 func RestoreKittyKeyboard(w io.Writer) {
 	_, _ = io.WriteString(w, "\x1b[<u")    // Pop Kitty protocol stack
 	_, _ = io.WriteString(w, "\x1b[>4;1m") // Restore modifyOtherKeys mode 1 (default)
+}
+
+// DisableKittyKeyboardCmd returns a tea.Cmd that re-disables extended keyboard
+// protocols on stdout. Use this after returning from tea.Exec (e.g. tmux
+// attach/detach) because tmux's "extended-keys on" re-enables modifyOtherKeys
+// on the outer terminal, leaving the TUI unable to parse shifted keys.
+func DisableKittyKeyboardCmd() tea.Cmd {
+	return func() tea.Msg {
+		DisableKittyKeyboard(os.Stdout)
+		return nil
+	}
 }
 
 // ParseCSIu parses a Kitty keyboard protocol (CSI u) escape sequence and

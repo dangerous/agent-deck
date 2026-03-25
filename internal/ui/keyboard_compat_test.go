@@ -126,6 +126,21 @@ func TestRestoreKittyKeyboard(t *testing.T) {
 	}
 }
 
+// TestDisableKittyKeyboardCmd verifies the Cmd helper returns a non-nil Cmd
+// that executes without error (the actual escape sequences go to os.Stdout
+// which is harmless in test context).
+func TestDisableKittyKeyboardCmd(t *testing.T) {
+	cmd := DisableKittyKeyboardCmd()
+	if cmd == nil {
+		t.Fatal("DisableKittyKeyboardCmd() returned nil Cmd")
+	}
+	// Execute the command — it should return nil (no follow-up message).
+	msg := cmd()
+	if msg != nil {
+		t.Errorf("DisableKittyKeyboardCmd() Cmd returned %v, want nil", msg)
+	}
+}
+
 // TestCSIuReaderPassesCSIuShiftM verifies CSIuReader translates \x1b[109;2u to "M".
 func TestCSIuReaderPassesCSIuShiftM(t *testing.T) {
 	input := "\x1b[109;2u"

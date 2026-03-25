@@ -363,6 +363,11 @@ func main() {
 			_ = db.ResignPrimary()
 			_ = db.UnregisterInstance()
 		}
+		// Restore terminal keyboard state before exiting. os.Exit skips
+		// defers, so the RestoreKittyKeyboard defer would never run,
+		// leaving the terminal stuck in legacy keyboard mode (or worse,
+		// in whatever extended mode tmux left behind).
+		ui.RestoreKittyKeyboard(os.Stdout)
 		os.Exit(0)
 	}()
 
@@ -586,6 +591,8 @@ func main() {
 	})
 
 	if _, err := p.Run(); err != nil {
+		// Restore keyboard before exiting — os.Exit skips defers.
+		ui.RestoreKittyKeyboard(os.Stdout)
 		fmt.Printf("Error: %v\n", err)
 		os.Exit(1)
 	}

@@ -3546,7 +3546,7 @@ func (h *Home) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		reloading := h.isReloading
 		h.reloadMu.Unlock()
 		if reloading {
-			return h, tea.EnableMouseCellMotion
+			return h, tea.Batch(tea.EnableMouseCellMotion, DisableKittyKeyboardCmd())
 		}
 
 		h.followAttachReturnCwd(msg)
@@ -3556,10 +3556,11 @@ func (h *Home) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Combine with periodic save instead of saving on every attach/detach.
 		// We'll let the next tickMsg handle background save if needed.
 
-		// Re-enable mouse mode after returning from tea.Exec.
-		// tmux detach-client sends terminal reset sequences that disable mouse reporting,
-		// and Bubble Tea doesn't re-enable it automatically after exec returns.
-		return h, tea.EnableMouseCellMotion
+		// Re-enable mouse mode and re-disable extended keyboard protocols after
+		// returning from tea.Exec. tmux's "extended-keys on" re-enables
+		// modifyOtherKeys / kitty keyboard on the outer terminal; Bubble Tea
+		// v1.3.10 cannot parse those sequences so shifted shortcuts break.
+		return h, tea.Batch(tea.EnableMouseCellMotion, DisableKittyKeyboardCmd())
 
 	case previewDebounceMsg:
 		// PERFORMANCE: Debounce period elapsed - check if this fetch is still relevant
